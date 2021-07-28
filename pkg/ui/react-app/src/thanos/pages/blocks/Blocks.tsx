@@ -9,9 +9,11 @@ import { Block } from './block';
 import { SourceView } from './SourceView';
 import { BlockDetails } from './BlockDetails';
 import { BlockInput } from './BlockInput';
-import { sortBlocks } from './helpers';
+import { sortBlocks, getOverlappingBlocks } from './helpers';
 import styles from './blocks.module.css';
 import TimeRange from './TimeRange';
+import Checkbox from '../../../components/Checkbox';
+
 export interface BlockListProps {
   blocks: Block[];
   err: string | null;
@@ -23,6 +25,8 @@ export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
   const [selectedBlock, selectBlock] = useState<Block>();
   const [searchState, setSearchState] = useState<string>('');
   const [blockSearch, setBlockSearch] = useState<string>('');
+  const [findOverlapBlock, setFindOverlapBlock] = useState<boolean>(false);
+  const [overlapBlocks, setOverlapBlocks] = useState<Set<string>>(new Set());
 
   const { blocks, label, err } = data;
 
@@ -65,31 +69,49 @@ export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
         onClick={() => setBlockSearch(searchState)}
       />
       {blocks.length > 0 ? (
-        <div className={styles.container}>
-          <div className={styles.grid}>
-            <div className={styles.sources}>
-              {Object.keys(blockPools).map((pk) => (
-                <SourceView
-                  key={pk}
-                  data={blockPools[pk]}
-                  title={pk}
-                  selectBlock={selectBlock}
-                  gridMinTime={viewMinTime}
-                  gridMaxTime={viewMaxTime}
-                  blockSearch={blockSearch}
-                />
-              ))}
+        <>
+          <Checkbox
+            id="find-overlap-block-checkbox"
+            onChange={({ target }) => {
+              setFindOverlapBlock(target.checked);
+              if (target.checked) {
+                setOverlapBlocks(getOverlappingBlocks(blockPools));
+              } else {
+                setOverlapBlocks(new Set());
+              }
+            }}
+            defaultChecked={findOverlapBlock}
+          >
+            Enable find overlap block
+          </Checkbox>
+          <div className={styles.container}>
+            <div className={styles.grid}>
+              <div className={styles.sources}>
+                {Object.keys(blockPools).map((pk) => (
+                  <SourceView
+                    key={pk}
+                    data={blockPools[pk]}
+                    title={pk}
+                    selectBlock={selectBlock}
+                    gridMinTime={viewMinTime}
+                    gridMaxTime={viewMaxTime}
+                    blockSearch={blockSearch}
+                    findOverlapBlock={findOverlapBlock}
+                    overlapBlocks={overlapBlocks}
+                  />
+                ))}
+              </div>
+              <TimeRange
+                gridMinTime={gridMinTime}
+                gridMaxTime={gridMaxTime}
+                viewMinTime={viewMinTime}
+                viewMaxTime={viewMaxTime}
+                onChange={setViewTime}
+              />
             </div>
-            <TimeRange
-              gridMinTime={gridMinTime}
-              gridMaxTime={gridMaxTime}
-              viewMinTime={viewMinTime}
-              viewMaxTime={viewMaxTime}
-              onChange={setViewTime}
-            />
+            <BlockDetails selectBlock={selectBlock} block={selectedBlock} />
           </div>
-          <BlockDetails selectBlock={selectBlock} block={selectedBlock} />
-        </div>
+        </>
       ) : (
         <UncontrolledAlert color="warning">No blocks found.</UncontrolledAlert>
       )}
