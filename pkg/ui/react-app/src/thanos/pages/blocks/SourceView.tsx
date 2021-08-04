@@ -2,22 +2,18 @@ import React, { FC } from 'react';
 import { Block, BlocksPool } from './block';
 import { BlockSpan } from './BlockSpan';
 import styles from './blocks.module.css';
-import { getBlockByUlid } from './helpers';
 
 export const BlocksRow: FC<{
   blocks: Block[];
   gridMinTime: number;
   gridMaxTime: number;
   selectBlock: React.Dispatch<React.SetStateAction<Block | undefined>>;
-  blockSearch: string;
   overlappingBlocksId: Set<string>;
   findOverlapBlock: boolean;
-}> = ({ blocks, gridMinTime, gridMaxTime, selectBlock, blockSearch, overlappingBlocksId, findOverlapBlock }) => {
-  const blockSearchValue = getBlockByUlid(blocks, blockSearch);
-
+}> = ({ blocks, gridMinTime, gridMaxTime, selectBlock, overlappingBlocksId, findOverlapBlock }) => {
   return (
     <div className={styles.row}>
-      {blockSearchValue.map<JSX.Element>((b) => {
+      {blocks.map<JSX.Element>((b) => {
         return (
           <BlockSpan selectBlock={selectBlock} block={b} gridMaxTime={gridMaxTime} gridMinTime={gridMinTime} key={b.ulid} />
         );
@@ -32,7 +28,6 @@ export interface SourceViewProps {
   gridMinTime: number;
   gridMaxTime: number;
   selectBlock: React.Dispatch<React.SetStateAction<Block | undefined>>;
-  blockSearch: string;
   findOverlapBlock: boolean;
   overlapBlocks: Set<string>;
 }
@@ -43,7 +38,6 @@ export const SourceView: FC<SourceViewProps> = ({
   gridMaxTime,
   gridMinTime,
   selectBlock,
-  blockSearch,
   findOverlapBlock,
   overlapBlocks,
 }) => {
@@ -63,7 +57,6 @@ export const SourceView: FC<SourceViewProps> = ({
                   key={`${k}-${i}`}
                   gridMaxTime={gridMaxTime}
                   gridMinTime={gridMinTime}
-                  blockSearch={blockSearch}
                   findOverlapBlock={findOverlapBlock}
                   overlappingBlocksId={overlapBlocks}
                 />

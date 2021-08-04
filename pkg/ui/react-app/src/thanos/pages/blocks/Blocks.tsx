@@ -9,7 +9,7 @@ import { Block } from './block';
 import { SourceView } from './SourceView';
 import { BlockDetails } from './BlockDetails';
 import { BlockSearchInput } from './BlockSearchInput';
-import { sortBlocks, getOverlappingBlocks } from './helpers';
+import { sortBlocks, getOverlappingBlocks, getBlockByUlid } from './helpers';
 import styles from './blocks.module.css';
 import TimeRange from './TimeRange';
 import Checkbox from '../../../components/Checkbox';
@@ -28,8 +28,6 @@ export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
   const [overlapBlocks, setOverlapBlocks] = useState<Set<string>>(new Set());
 
   const { blocks, label, err } = data;
-
-  const blockPools = useMemo(() => sortBlocks(blocks, label), [blocks, label]);
   const [gridMinTime, gridMaxTime] = useMemo(() => {
     if (!err && blocks.length > 0) {
       let gridMinTime = blocks[0].minTime;
@@ -54,6 +52,10 @@ export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
   });
 
   const [blockSearch, setBlockSearch] = useState<string>(blockSearchParam);
+
+  const renderedBlocks = useMemo(() => getBlockByUlid(blocks, blockSearch), [blocks, blockSearch]);
+
+  const blockPools = useMemo(() => sortBlocks(renderedBlocks, label), [renderedBlocks, label]);
 
   const setViewTime = (times: number[]): void => {
     setQuery({
@@ -105,7 +107,6 @@ export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
                     selectBlock={selectBlock}
                     gridMinTime={viewMinTime}
                     gridMaxTime={viewMaxTime}
-                    blockSearch={blockSearch}
                     findOverlapBlock={findOverlapBlock}
                     overlapBlocks={overlapBlocks}
                   />
