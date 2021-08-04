@@ -17,19 +17,10 @@ export const BlocksRow: FC<{
 
   return (
     <div className={styles.row}>
-      {blocks.map<JSX.Element | null>((b) => {
-        if (b.ulid === blockSearchValue || blockSearch === '' || overlappingBlocksId.has(b.ulid) || !findOverlapBlock) {
-          return (
-            <BlockSpan
-              selectBlock={selectBlock}
-              block={b}
-              gridMaxTime={gridMaxTime}
-              gridMinTime={gridMinTime}
-              key={b.ulid}
-            />
-          );
-        }
-        return null;
+      {blockSearchValue.map<JSX.Element>((b) => {
+        return (
+          <BlockSpan selectBlock={selectBlock} block={b} gridMaxTime={gridMaxTime} gridMinTime={gridMinTime} key={b.ulid} />
+        );
       })}
     </div>
   );

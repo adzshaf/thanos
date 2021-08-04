@@ -1,14 +1,14 @@
 import React, { ChangeEvent, FC, useMemo, useState } from 'react';
 import { RouteComponentProps } from '@reach/router';
 import { UncontrolledAlert } from 'reactstrap';
-import { useQueryParams, withDefault, NumberParam } from 'use-query-params';
+import { useQueryParams, withDefault, NumberParam, StringParam } from 'use-query-params';
 import { withStatusIndicator } from '../../../components/withStatusIndicator';
 import { useFetch } from '../../../hooks/useFetch';
 import PathPrefixProps from '../../../types/PathPrefixProps';
 import { Block } from './block';
 import { SourceView } from './SourceView';
 import { BlockDetails } from './BlockDetails';
-import { BlockInput } from './BlockInput';
+import { BlockSearchInput } from './BlockSearchInput';
 import { sortBlocks, getOverlappingBlocks } from './helpers';
 import styles from './blocks.module.css';
 import TimeRange from './TimeRange';
@@ -24,7 +24,6 @@ export interface BlockListProps {
 export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
   const [selectedBlock, selectBlock] = useState<Block>();
   const [searchState, setSearchState] = useState<string>('');
-  const [blockSearch, setBlockSearch] = useState<string>('');
   const [findOverlapBlock, setFindOverlapBlock] = useState<boolean>(false);
   const [overlapBlocks, setOverlapBlocks] = useState<Set<string>>(new Set());
 
@@ -48,10 +47,13 @@ export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
     return [0, 0];
   }, [blocks, err]);
 
-  const [{ 'min-time': viewMinTime, 'max-time': viewMaxTime }, setQuery] = useQueryParams({
+  const [{ 'min-time': viewMinTime, 'max-time': viewMaxTime, ulid: blockSearchParam }, setQuery] = useQueryParams({
     'min-time': withDefault(NumberParam, gridMinTime),
     'max-time': withDefault(NumberParam, gridMaxTime),
+    ulid: withDefault(StringParam, ''),
   });
+
+  const [blockSearch, setBlockSearch] = useState<string>(blockSearchParam);
 
   const setViewTime = (times: number[]): void => {
     setQuery({
@@ -60,16 +62,24 @@ export const BlocksContent: FC<{ data: BlockListProps }> = ({ data }) => {
     });
   };
 
+  const setBlockSearchInput = (searchState: string): void => {
+    setQuery({
+      ulid: searchState,
+    });
+    setBlockSearch(searchState);
+  };
+
   if (err) return <UncontrolledAlert color="danger">{err.toString()}</UncontrolledAlert>;
 
   return (
     <>
-      <BlockInput
-        onChange={({ target }: ChangeEvent<HTMLInputElement>): void => setSearchState(target.value)}
-        onClick={() => setBlockSearch(searchState)}
-      />
       {blocks.length > 0 ? (
         <>
+          <BlockSearchInput
+            onChange={({ target }: ChangeEvent<HTMLInputElement>): void => setSearchState(target.value)}
+            onClick={() => setBlockSearchInput(searchState)}
+            defaultValue={blockSearchParam}
+          />
           <Checkbox
             id="find-overlap-block-checkbox"
             onChange={({ target }) => {
